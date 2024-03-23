@@ -11,11 +11,10 @@ Hashcrack is a simple, fast, and free hash bruteforcer for all different hashing
 
 ## Usage
 
-`python3 hashcrack.py -c <hash> [-ha <hash algorithm>] [-sc]`
-`-c` - Hash to crack
-`-ha` - Hash algorithm - MD5, SHA256, SHA1, BCRYPT (default: SHA256)
-`-sc` - Show current information - dynamic (slows down program)
-
-`python3 hashcrack.py -h <hash> [-ha <hash algorithm>]`
-`-h` - Hash to crack
-`-ha` - Hash algorithm - MD5, SHA256, SHA1, BCRYPT (default: SHA256)
+`<program> [-c or --crack] <hash> [-a or --algorithm] <hash algorithm> [-si or --show-info]`
+'-c / --crack' - Crack hash
+'-a / --algorithm' - Hash algorithm (sha256, md5, sha1, bcrypt)
+'-si / --show-info' - Show current information (dynamically updating - slows down a lot)\n
+`<program> [-h or --hash] <text to hash> [-a or --algorithm] <hash algorithm>`
+'-h / --hash' - Hash text
+'-a / --algorithm' - Hash algorithm (sha256, md5, sha1, bcrypt)
