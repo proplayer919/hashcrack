@@ -6,7 +6,7 @@ from time import time
 from colorama import Style
 import bcrypt
 
-title_text = "----HASHCRACK v1.0----"
+title_text = "HASHCRACK v2.0"
 
 args = sys.argv
 
@@ -137,75 +137,59 @@ def crack_hash(hash_value, print_current=False, hash_function=calculate_hash_sha
         )
 
 
-if len(args) > 2:
-    if args[1] == "-c":
-        if len(args) > 4:
-            if args[3] == "-sc":
-                crack_hash(args[2], True)
-            elif args[3] == "-ha" and len(args) > 4:
-                if len(args) > 5 and args[5] == "-sc":
-                    if args[4] == "sha256":
-                        crack_hash(args[2], True, calculate_hash_sha256)
-                    elif args[4] == "md5":
-                        crack_hash(args[2], True, calculate_hash_md5)
-                    elif args[4] == "sha1":
-                        crack_hash(args[2], True, calculate_hash_sha1)
-                    elif args[4] == "bcrypt":
-                        crack_hash(args[2], True, calculate_hash_bcrypt)
+formattedArgs = []
+mode = None
 
-                if args[4] == "sha256":
-                    crack_hash(args[2], False, calculate_hash_sha256)
-                elif args[4] == "md5":
-                    crack_hash(args[2], False, calculate_hash_md5)
-                elif args[4] == "sha1":
-                    crack_hash(args[2], False, calculate_hash_sha1)
-                elif args[4] == "bcrypt":
-                    crack_hash(args[2], False, calculate_hash_bcrypt)
+for arg in args:
+    if arg.startswith("-"):
+        if not args[args.index(arg) + 1 % len(args)].startswith("-"):
+            formattedArgs.append([arg, args[args.index(arg) + 1]])
         else:
-            crack_hash(args[2], False)
-    elif args[1] == "-h":
-        if len(args) > 4 and args[3] == "-ha":
-            if args[4] == "sha256":
-                print_to_screen(
-                    combine_strings(
-                        title_text,
-                        "Text to hash: " + args[2],
-                        "Hash: " + calculate_hash_sha256(args[2]) + "\n",
-                    )
-                )
-            elif args[4] == "md5":
-                print_to_screen(
-                    combine_strings(
-                        title_text,
-                        "Text to hash: " + args[2],
-                        "Hash: " + calculate_hash_md5(args[2]) + "\n",
-                    )
-                )
+            formattedArgs.append([arg])
+    else:
+        continue
 
-            elif args[4] == "sha1":
-                print_to_screen(
-                    combine_strings(
-                        title_text,
-                        "Text to hash: " + args[2],
-                        "Hash: " + calculate_hash_sha1(args[2]) + "\n",
-                    )
-                )
+for arg in formattedArgs:
+    if arg[0] == "-c" or arg[0] == "--crack":
+        hash_value = arg[1]
+        mode = "c"
+        
+    if arg[0] == "-a" or arg[0] == "--algorithm":
+        hash_algorithm = arg[1]
+    else:
+        hash_algorithm = "sha256"
+        
+    if arg[0] == "-h" or arg[0] == "--hash":
+        hash_text = arg[1]
+        mode = "h"
+        
+    if arg[0] == "-si" or arg[0] == "--show-info":
+        show_info = True
+    else:
+        show_info = False
 
-            elif args[4] == "bcrypt":
-                print_to_screen(
-                    combine_strings(
-                        title_text,
-                        "Text to hash: " + args[2],
-                        "Hash: " + calculate_hash_bcrypt(args[2]) + "\n",
-                    )
-                )
-        else:
-            print_to_screen(
-                combine_strings(
-                    title_text,
-                    "Text to hash: " + args[2],
-                    "Hash: " + calculate_hash_sha256(args[2]) + "\n",
-                )
-            )
+if mode == "c":
+    crack_hash(
+        hash_value, show_info, globals()["calculate_hash_" + hash_algorithm]
+    )
+elif mode == "h":
+    print_to_screen(
+        combine_strings(
+            title_text,
+            "Text to hash: " + hash_text,
+            "Hash: " + globals()["calculate_hash_" + hash_algorithm](hash_text) + "\n",
+        )
+    )
 else:
-    print("Usage:\n<program> -c <hash>\n<program> -h <text>")
+    print_to_screen(
+        combine_strings(
+            title_text + " Usage\n",
+            "<program> [-c or --crack] <hash> [-a or --algorithm] <hash algorithm> [-si or --show-info]",
+            "'-c / --crack' - Crack hash",
+            "'-a / --algorithm' - Hash algorithm (sha256, md5, sha1, bcrypt)",
+            "'-si / --show-info' - Show current information (dynamically updating - slows down a lot)\n",
+            "<program> [-h or --hash] <text to hash> [-a or --algorithm] <hash algorithm>",
+            "'-h / --hash' - Hash text",
+            "'-a / --algorithm' - Hash algorithm (sha256, md5, sha1, bcrypt)",
+        )
+    )
