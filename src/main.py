@@ -6,7 +6,7 @@ from time import time
 from colorama import Style
 import bcrypt
 
-title_text = "HASHCRACK v2.0"
+title_text = "HASHCRACK v2.2"
 
 args = sys.argv
 
@@ -53,7 +53,18 @@ def number_to_text(number):
     return "".join(reversed(chars))
 
 
-def crack_hash(hash_value, print_current=False, hash_function=calculate_hash_sha256):
+def crack_hash(hash_value, print_current=False, hash_algorithm="sha256"):
+    if not print_current:
+        print_to_screen(
+            combine_strings(
+                title_text + "\n",
+                "Cracking hash: " + hash_value,
+                "Hash Algorithm: " + hash_algorithm,
+            )
+        )
+
+    hasher = globals()["calculate_hash_" + hash_algorithm] or calculate_hash_sha256
+
     start_time = time()
     result = None
     tried_hashes = []
@@ -64,6 +75,7 @@ def crack_hash(hash_value, print_current=False, hash_function=calculate_hash_sha
         nonlocal result
         nonlocal tried_hashes
         nonlocal print_current
+        nonlocal hasher
 
         while True:
             with lock:
@@ -77,14 +89,17 @@ def crack_hash(hash_value, print_current=False, hash_function=calculate_hash_sha
                 if i in tried_hashes:
                     continue
 
+                tried_hashes.append(i)
+
                 attempts += 1
-                current_try_hashed = hash_function(number_to_text(i))
                 current_try = number_to_text(i)
+
+                current_try_hashed = hasher(current_try)
 
                 if print_current:
                     print_to_screen(
                         combine_strings(
-                            title_text,
+                            title_text + "\n",
                             "Cracking hash: " + hash_value,
                             "Currently trying: " + current_try,
                             "Currently trying (hashed): " + current_try_hashed,
@@ -102,11 +117,9 @@ def crack_hash(hash_value, print_current=False, hash_function=calculate_hash_sha
                     cracked = current_try
                     result = cracked
                     return
-                else:
-                    tried_hashes.append(current_try_hashed)
 
     num_threads = 6
-    max_attempts = 10**7  # Adjust this based on your requirements
+    max_attempts = 94 ** 6
     batch_size = max_attempts // num_threads
     hash_generator = iter(range(max_attempts))
     lock = threading.Lock()
@@ -125,10 +138,10 @@ def crack_hash(hash_value, print_current=False, hash_function=calculate_hash_sha
 
         print_to_screen(
             combine_strings(
-                title_text,
+                title_text + "\n",
                 "Cracked hash: " + hash_value,
                 "Cracked: " + cracked,
-                "Time elapsed: " + str(round(time() - start_time, 2)) + " seconds",
+                "Time elapsed: " + str(round(time() - start_time, 3)) + " seconds",
                 "Attempts: " + str(attempts),
                 "Speed: "
                 + str(round(attempts / (time() - start_time + 0.1), 2))
@@ -141,8 +154,11 @@ formattedArgs = []
 mode = None
 
 for arg in args:
+    if arg is None:
+        raise ValueError("arg cannot be None")
+
     if arg.startswith("-"):
-        if not args[args.index(arg) + 1 % len(args)].startswith("-"):
+        if args.index(arg) + 1 < len(args):
             formattedArgs.append([arg, args[args.index(arg) + 1]])
         else:
             formattedArgs.append([arg])
@@ -153,31 +169,29 @@ for arg in formattedArgs:
     if arg[0] == "-c" or arg[0] == "--crack":
         hash_value = arg[1]
         mode = "c"
-        
+    elif arg[0] == "-h" or arg[0] == "--hash":
+        hash_text = arg[1]
+        mode = "h"
+
     if arg[0] == "-a" or arg[0] == "--algorithm":
         hash_algorithm = arg[1]
     else:
         hash_algorithm = "sha256"
-        
-    if arg[0] == "-h" or arg[0] == "--hash":
-        hash_text = arg[1]
-        mode = "h"
-        
+
     if arg[0] == "-si" or arg[0] == "--show-info":
         show_info = True
     else:
         show_info = False
 
 if mode == "c":
-    crack_hash(
-        hash_value, show_info, globals()["calculate_hash_" + hash_algorithm]
-    )
+    crack_hash(hash_value, show_info, hash_algorithm)
 elif mode == "h":
     print_to_screen(
         combine_strings(
-            title_text,
+            title_text + "\n",
             "Text to hash: " + hash_text,
-            "Hash: " + globals()["calculate_hash_" + hash_algorithm](hash_text) + "\n",
+            "Hash: " + globals()["calculate_hash_" + hash_algorithm](hash_text),
+            "Hash algorithm: " + hash_algorithm + "\n",
         )
     )
 else:
