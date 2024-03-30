@@ -6,7 +6,7 @@ from time import time
 from colorama import Style
 import bcrypt
 
-title_text = "HASHCRACK v2.3"
+title_text = "HASHCRACK v2.4"
 
 args = sys.argv
 
@@ -32,6 +32,9 @@ def calculate_hash_sha1(text):
 
 def calculate_hash_bcrypt(text):
     return bcrypt.hashpw(text.encode(), bcrypt.gensalt()).hex()
+
+def calculate_hash_sha512(text):
+    return hashlib.sha512(text.encode()).hexdigest()
 
 
 def print_to_screen(text):
@@ -87,7 +90,7 @@ def crack_hash(hash_value, print_current=False, hash_algorithm="sha256"):
                     current_try_hashed = hasher(current_try)
 
                     if print_current:
-                        print_to_screen(combine_strings(title_text + "\n", "Cracking hash: " + hash_value, "Currently trying: " + current_try, "Currently trying (hashed): " + current_try_hashed, "Time elapsed: " + str(round(time() - start_time, 2)) + " seconds", "Attempts: " + str(attempts), "Speed: " + str(round(attempts / round(time() - start_time + 0.1, 2))) + " hashes / second"))
+                        print_to_screen(combine_strings(title_text + "\n", "Cracking hash: " + hash_value, "Currently trying: " + current_try, "Currently trying (hashed): " + current_try_hashed, "Time elapsed: " + str(round(time() - start_time, 2)) + " seconds", "Attempts: " + str(attempts), "Speed: " + str(round(attempts / round(time() - start_time + 0.1, 2))) + " hashes / second", "Hash algorithm: " + hash_algorithm))
 
                     if hash_value == current_try_hashed:
                         cracked = current_try
@@ -112,7 +115,7 @@ def crack_hash(hash_value, print_current=False, hash_algorithm="sha256"):
         if result is not None:
             cracked = result
 
-            print_to_screen(combine_strings(title_text + "\n", "Cracked hash: " + hash_value, "Cracked: " + cracked, "Time elapsed: " + str(round(time() - start_time, 3)) + " seconds", "Attempts: " + str(attempts), "Speed: " + str(round(attempts / (time() - start_time + 0.1), 2)) + " hashes / second"))
+            print_to_screen(combine_strings(title_text + "\n", "Cracked hash: " + hash_value, "Cracked: " + cracked, "Time elapsed: " + str(round(time() - start_time, 3)) + " seconds", "Attempts: " + str(attempts), "Speed: " + str(round(attempts / (time() - start_time + 0.1), 2)) + " hashes / second", "Hash algorithm: " + hash_algorithm))
     except Exception as e:
         print_to_screen(f"Error: {str(e)}")
 
@@ -155,4 +158,4 @@ if mode == "c":
 elif mode == "h":
     print_to_screen(combine_strings(title_text + "\n", "Text to hash: " + hash_text, "Hash: " + globals().get("calculate_hash_" + hash_algorithm, calculate_hash_sha256)(hash_text), "Hash algorithm: " + hash_algorithm + "\n"))
 else:
-    print_to_screen(combine_strings(title_text + " Usage\n", "<program> [-c or --crack] <hash> [-a or --algorithm] <hash algorithm> [-si or --show-info]", "'-c / --crack' - Crack hash", "'-a / --algorithm' - Hash algorithm (sha256, md5, sha1, bcrypt)", "'-si / --show-info' - Show current information (dynamically updating - slows down a lot)\n", "<program> [-h or --hash] <text to hash> [-a or --algorithm] <hash algorithm>", "'-h / --hash' - Hash text", "'-a / --algorithm' - Hash algorithm (sha256, md5, sha1, bcrypt)"))
+    print_to_screen(combine_strings(title_text + " Usage\n", "<program> [-c or --crack] <hash> [-a or --algorithm] <hash algorithm> [-si or --show-info]", "'-c / --crack' - Crack hash", "'-a / --algorithm' - Hash algorithm (sha256, md5, sha1, bcrypt, sha512)", "'-si / --show-info' - Show current information (dynamically updating - slows down a lot)\n", "<program> [-h or --hash] <text to hash> [-a or --algorithm] <hash algorithm>", "'-h / --hash' - Hash text", "'-a / --algorithm' - Hash algorithm (sha256, md5, sha1, bcrypt, sha512)"))
