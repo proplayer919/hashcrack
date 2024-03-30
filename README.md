@@ -1,4 +1,4 @@
-# Hashcrack
+# Hashcrack v2.3
 
 Hashcrack is a simple, fast, and free hash bruteforcer for all different hashing algorithms.
 
